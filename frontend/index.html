@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartEvent AI - Smart Event Recommendation Platform for Students</title>
     <meta name="description" content="An AI-powered university event recommendation engine tailored to student profiles and academic interests.">
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
-    <!-- Lucide Icons Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -23,11 +21,9 @@
                 <span class="logo-icon"><i data-lucide="sparkles"></i></span>
                 SmartEvent <span class="accent-text">AI</span>
             </a>
-            
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle Navigation">
                 <i data-lucide="menu"></i>
             </button>
-
             <ul class="nav-menu" id="nav-menu">
                 <li class="nav-item"><a href="#home" class="nav-link active">Home</a></li>
                 <li class="nav-item"><a href="#features" class="nav-link">Features</a></li>
@@ -35,6 +31,7 @@
                 <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
                 <li class="nav-actions" id="nav-actions-container">
                     <button class="btn btn-outline" onclick="openLoginModal()">Student Login</button>
+                    <button class="btn btn-outline" onclick="openAdminModal()" style="border-color: var(--warning-color); color: var(--warning-color);">Admin</button>
                     <a href="#recommendations" class="btn btn-primary">Get Started</a>
                 </li>
             </ul>
@@ -45,7 +42,6 @@
     <section class="hero" id="home">
         <div class="hero-container">
             <div class="hero-content">
-                <span class="badge hero-badge">College Project AI/ML</span>
                 <h1 class="hero-title">Discover Events Tailored to Your Interests</h1>
                 <p class="hero-subtitle">An AI-powered platform that recommends workshops, hackathons, seminars, and technical events based on your academic profile and interests.</p>
                 <div class="hero-buttons">
@@ -67,27 +63,22 @@
                 <h2 class="section-title">Designed for Student Success</h2>
                 <p class="section-subtitle">Leveraging machine learning to map academic metrics directly to high-impact campus events.</p>
             </div>
-            
             <div class="features-grid">
-                <!-- Card 1 -->
                 <div class="feature-card">
                     <div class="feature-icon"><i data-lucide="sliders"></i></div>
                     <h3 class="feature-title">Personalized Recommendations</h3>
                     <p class="feature-desc">Recommends ideal events by evaluating year, academic attendance, feedback behavior, and engagement levels.</p>
                 </div>
-                <!-- Card 2 -->
                 <div class="feature-card">
                     <div class="feature-icon"><i data-lucide="cpu"></i></div>
                     <h3 class="feature-title">AI-Based Matching</h3>
                     <p class="feature-desc">Uses a Random Forest Classifier trained on student historical participation logs to achieve highly accurate predictions.</p>
                 </div>
-                <!-- Card 3 -->
                 <div class="feature-card">
                     <div class="feature-icon"><i data-lucide="graduation-cap"></i></div>
                     <h3 class="feature-title">Department Specific Suggestions</h3>
                     <p class="feature-desc">Tailors events to your department (AIML, CSE, ECE, EEE, IT) to build a robust, domain-aligned portfolio.</p>
                 </div>
-                <!-- Card 4 -->
                 <div class="feature-card">
                     <div class="feature-icon"><i data-lucide="bar-chart-3"></i></div>
                     <h3 class="feature-title">Student Engagement Analytics</h3>
@@ -105,7 +96,6 @@
                 <h2 class="section-title">How It Works</h2>
                 <p class="section-subtitle">Get your tailored recommendations in three simple steps.</p>
             </div>
-
             <div class="steps-container">
                 <div class="step-card">
                     <div class="step-num">01</div>
@@ -139,13 +129,11 @@
                 <h2 class="section-title">Get Smart Event Recommendations</h2>
                 <p class="section-subtitle">Fill in your profile details below to query the machine learning model.</p>
             </div>
-
             <div class="rec-grid">
                 <!-- FORM CARD -->
                 <div class="card form-card">
                     <h3 class="card-title">Student Academic Profile</h3>
                     <form id="recommendation-form" novalidate>
-                        
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="department">Department</label>
@@ -159,7 +147,6 @@
                                 </select>
                                 <span class="error-msg" id="department-error">Please select a department.</span>
                             </div>
-
                             <div class="form-group">
                                 <label for="year">Year of Study</label>
                                 <select id="year" name="year" required>
@@ -172,7 +159,6 @@
                                 <span class="error-msg" id="year-error">Please select your year.</span>
                             </div>
                         </div>
-
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="interest_area">Interest Area</label>
@@ -187,7 +173,6 @@
                                 </select>
                                 <span class="error-msg" id="interest-error">Please select your interest area.</span>
                             </div>
-
                             <div class="form-group">
                                 <label for="engagement_status">Engagement Status</label>
                                 <select id="engagement_status" name="engagement_status" required>
@@ -199,14 +184,12 @@
                                 <span class="error-msg" id="engagement-error">Please select your engagement status.</span>
                             </div>
                         </div>
-
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="past_events_attended">Past Events Attended</label>
                                 <input type="number" id="past_events_attended" name="past_events_attended" min="0" max="30" placeholder="e.g. 5" required>
                                 <span class="error-msg" id="past-events-error">Enter a value between 0 and 30.</span>
                             </div>
-
                             <div class="form-group">
                                 <label for="feedback_rating">Typical Feedback Rating</label>
                                 <select id="feedback_rating" name="feedback_rating" required>
@@ -220,7 +203,6 @@
                                 <span class="error-msg" id="feedback-error">Please select a feedback rating.</span>
                             </div>
                         </div>
-
                         <div class="form-group">
                             <div class="slider-label-container">
                                 <label for="attendance_percentage">Academic Attendance Percentage</label>
@@ -228,7 +210,6 @@
                             </div>
                             <input type="range" id="attendance_percentage" name="attendance_percentage" min="0" max="100" value="75" class="slider">
                         </div>
-
                         <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn">
                             Get Smart Recommendation
                         </button>
@@ -242,28 +223,21 @@
                         <h3 class="placeholder-title">No recommendation generated.</h3>
                         <p class="placeholder-desc">Fill out the student academic profile form and click the button to generate an event suggestion powered by Random Forest.</p>
                     </div>
-
-                    <!-- Loader Animation -->
                     <div class="result-loader" id="result-loader" style="display: none;">
                         <div class="spinner"></div>
                         <h3 class="loader-title">Finding the best event for you...</h3>
                         <p class="loader-desc">Running inputs through AI/ML model vectors.</p>
                     </div>
-
-                    <!-- Prediction Result Display -->
                     <div class="result-display" id="result-display" style="display: none;">
                         <div class="result-header-row">
                             <span class="badge result-badge"><i data-lucide="sparkles"></i> Recommended for You</span>
                             <span class="difficulty-tag" id="event-difficulty">Intermediate</span>
                         </div>
-                        
                         <h3 class="event-title" id="event-name">AI Hackathon</h3>
                         <span class="category-tag" id="event-category">Computer Science</span>
-                        
                         <p class="event-description" id="event-description">
                             A collaborative environment where students develop AI/ML solutions in a fast-paced environment.
                         </p>
-
                         <div class="score-container">
                             <div class="score-label-row">
                                 <span class="score-label">ML Prediction Confidence / Match Score</span>
@@ -273,7 +247,11 @@
                                 <div class="progress-fill" id="match-score-fill" style="width: 88%;"></div>
                             </div>
                         </div>
-
+                        <!-- Feature Importance Block -->
+                        <div class="feature-importance-container" id="feature-importance-container">
+                            <p class="feature-importance-title"><i data-lucide="bar-chart-2"></i> Why this was recommended?</p>
+                            <div id="feature-importance-bars"></div>
+                        </div>
                         <div class="result-action">
                             <button class="btn btn-primary btn-block" onclick="registerForEvent()">
                                 <i data-lucide="check-square"></i> Register for Event
@@ -318,47 +296,8 @@
                 <h2 class="section-title">Trending Events This Week</h2>
                 <p class="section-subtitle">Browse through current college events open for registrations across departments.</p>
             </div>
-
-            <div class="events-grid">
-                <!-- Event 1 -->
-                <div class="event-card-horizontal">
-                    <div class="event-date-badge">
-                        <span class="day">15</span>
-                        <span class="month">Jun</span>
-                    </div>
-                    <div class="event-details">
-                        <span class="event-category-label">Workshop</span>
-                        <h3 class="event-name-title">AI Workshop: Fundamentals of Neural Networks</h3>
-                        <p class="event-meta"><i data-lucide="clock"></i> 10:00 AM - 01:00 PM | <i data-lucide="map-pin"></i> Block A, Seminar Hall</p>
-                    </div>
-                    <button class="btn btn-outline" onclick="quickRegister('AI Workshop')">Register</button>
-                </div>
-                <!-- Event 2 -->
-                <div class="event-card-horizontal">
-                    <div class="event-date-badge">
-                        <span class="day">18</span>
-                        <span class="month">Jun</span>
-                    </div>
-                    <div class="event-details">
-                        <span class="event-category-label">Hackathon</span>
-                        <h3 class="event-name-title">GenAI Hackathon: Build LLM Prototypes</h3>
-                        <p class="event-meta"><i data-lucide="clock"></i> 09:00 AM - 05:00 PM | <i data-lucide="map-pin"></i> Innovation Lab, CS Block</p>
-                    </div>
-                    <button class="btn btn-outline" onclick="quickRegister('GenAI Hackathon')">Register</button>
-                </div>
-                <!-- Event 3 -->
-                <div class="event-card-horizontal">
-                    <div class="event-date-badge">
-                        <span class="day">21</span>
-                        <span class="month">Jun</span>
-                    </div>
-                    <div class="event-details">
-                        <span class="event-category-label">Seminar</span>
-                        <h3 class="event-name-title">Career Guidance: Industry Prep for AI/ML Roles</h3>
-                        <p class="event-meta"><i data-lucide="clock"></i> 02:00 PM - 04:00 PM | <i data-lucide="map-pin"></i> Main Auditorium</p>
-                    </div>
-                    <button class="btn btn-outline" onclick="quickRegister('Career Development Session')">Register</button>
-                </div>
+            <div class="events-grid" id="events-grid">
+                <div class="text-center" style="padding: 40px; color: var(--text-muted);">Loading events...</div>
             </div>
         </div>
     </section>
@@ -371,9 +310,7 @@
                 <h2 class="section-title">What Our Students Say</h2>
                 <p class="section-subtitle">Real feedback from college students who upgraded their profiles using our AI suggestions.</p>
             </div>
-
             <div class="testimonials-grid">
-                <!-- Card 1 -->
                 <div class="testimonial-card">
                     <div class="testimonial-content">
                         "The GenAI Hackathon recommendation was spot on. I met my co-developers there, and we built a web app that won second place in the department!"
@@ -386,7 +323,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Card 2 -->
                 <div class="testimonial-card">
                     <div class="testimonial-content">
                         "I used to attend generic workshops that didn't align with my goals. The algorithm recommended the Data Engineering Summit, which got me started in databases."
@@ -399,7 +335,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Card 3 -->
                 <div class="testimonial-card">
                     <div class="testimonial-content">
                         "Extremely simple UI. I filled out my interest as Python, got recommended the coding challenge, and ended up securing a certificate of merit."
@@ -416,7 +351,7 @@
         </div>
     </section>
 
-    <!-- ADMIN ACTIVITY LOGS SECTION -->
+    <!-- ADMIN DASHBOARD SECTION -->
     <section class="admin-section" id="admin-section" style="display: none;">
         <div class="section-container">
             <div class="section-header">
@@ -425,9 +360,26 @@
                 <p class="section-subtitle">Real-time database audit showing student logins and prediction records.</p>
             </div>
 
+            <!-- ANALYTICS CHARTS -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <p class="chart-title">Most Recommended Events</p>
+                    <canvas id="chart-events"></canvas>
+                </div>
+                <div class="chart-card">
+                    <p class="chart-title">Department Activity</p>
+                    <canvas id="chart-departments"></canvas>
+                </div>
+                <div class="chart-card chart-card-wide">
+                    <p class="chart-title">Login Activity (Last 7 Days)</p>
+                    <canvas id="chart-logins"></canvas>
+                </div>
+            </div>
+
             <div class="admin-tabs">
                 <button class="tab-btn active" id="predictions-tab-btn" onclick="switchAdminTab('predictions-tab')">Prediction Logs</button>
                 <button class="tab-btn" id="logins-tab-btn" onclick="switchAdminTab('logins-tab')">Login History</button>
+                <button class="tab-btn" id="events-tab-btn" onclick="switchAdminTab('events-tab')">Manage Events</button>
                 <button class="btn btn-outline" onclick="fetchActivityLogs()" style="padding: 6px 14px; font-size: 0.85rem; margin-left: auto;">
                     <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
                 </button>
@@ -450,9 +402,7 @@
                             </tr>
                         </thead>
                         <tbody id="predictions-log-body">
-                            <tr>
-                                <td colspan="8" class="text-center">No predictions logged yet.</td>
-                            </tr>
+                            <tr><td colspan="8" class="text-center">No predictions logged yet.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -469,15 +419,83 @@
                             </tr>
                         </thead>
                         <tbody id="logins-log-body">
-                            <tr>
-                                <td colspan="2" class="text-center">No login history logged yet.</td>
-                            </tr>
+                            <tr><td colspan="2" class="text-center">No login history logged yet.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            
-            <p class="logs-path-info">Logs are also saved to: <code>backend/logs/activity.log</code> and SQLite database: <code>backend/data.db</code></p>
+
+            <!-- Manage Events Tab -->
+            <div class="tab-content" id="events-tab">
+                <div class="card" style="margin-top:16px; padding: 24px;">
+                    <h4 style="font-size:1rem; margin-bottom:16px;">Add New Event</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="ev-title" placeholder="e.g. AI Workshop: Introduction">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" id="ev-category" placeholder="e.g. Workshop">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date Day</label>
+                            <input type="text" id="ev-day" placeholder="e.g. 15">
+                        </div>
+                        <div class="form-group">
+                            <label>Date Month</label>
+                            <input type="text" id="ev-month" placeholder="e.g. Aug">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Time</label>
+                            <input type="text" id="ev-time" placeholder="e.g. 10:00 AM - 12:00 PM">
+                        </div>
+                        <div class="form-group">
+                            <label>Venue</label>
+                            <input type="text" id="ev-venue" placeholder="e.g. Block A, Lab 3">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Event Type (must match model output)</label>
+                        <select id="ev-type">
+                            <option value="">Select Event Type</option>
+                            <option>AI Workshop</option>
+                            <option>GenAI Hackathon</option>
+                            <option>Career Development Session</option>
+                            <option>Machine Learning Seminar</option>
+                            <option>Prompt Engineering Bootcamp</option>
+                            <option>Python Coding Challenge</option>
+                            <option>Data Engineering Summit</option>
+                            <option>Research Symposium</option>
+                        </select>
+                    </div>
+                    <span class="error-msg auth-global-error" id="ev-error"></span>
+                    <button class="btn btn-primary" onclick="adminAddEvent()" style="margin-top:8px;"><i data-lucide="plus"></i> Add Event</button>
+                </div>
+                <div class="table-responsive" style="margin-top:20px;">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Title</th>
+                                <th>Time</th>
+                                <th>Venue</th>
+                                <th>Event Type</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-events-body">
+                            <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </section>
 
@@ -497,7 +515,6 @@
                     <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="LinkedIn"><i data-lucide="linkedin"></i></a>
                 </div>
             </div>
-
             <div class="footer-links-section">
                 <h4 class="footer-title">Quick Links</h4>
                 <ul class="footer-links">
@@ -507,7 +524,6 @@
                     <li><a href="#upcoming">Upcoming Events</a></li>
                 </ul>
             </div>
-
             <div class="footer-contact-section">
                 <h4 class="footer-title">Contact</h4>
                 <ul class="footer-contact">
@@ -517,32 +533,85 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 SmartEvent AI. All rights reserved. Created for College AI/ML Project.</p>
+            <p>&copy; 2026 SmartEvent AI. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- POPUPS / DUMMY LOGIN MODAL -->
+    <!-- AUTH MODAL (Login + Register Tabs) -->
     <div class="modal-overlay" id="login-modal" style="display: none;">
         <div class="modal-card">
             <button class="modal-close" onclick="closeLoginModal()"><i data-lucide="x"></i></button>
-            <h3 class="modal-title">Student Login</h3>
-            <p class="modal-subtitle">Login using your university credentials.</p>
-            <form id="dummy-login-form" onsubmit="handleLoginSubmit(event)">
-                <div class="form-group">
-                    <label for="student-email">University Email</label>
-                    <input type="email" id="student-email" placeholder="student@university.edu" required>
-                </div>
-                <div class="form-group">
-                    <label for="student-password">Password</label>
-                    <input type="password" id="student-password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-            </form>
-            <p class="modal-footer-text">Dummy login for academic project showcase purposes.</p>
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" id="login-tab-btn" onclick="switchAuthTab('login')">Sign In</button>
+                <button class="auth-tab-btn" id="register-tab-btn" onclick="switchAuthTab('register')">Register</button>
+            </div>
+            <div class="auth-tab-content active" id="login-tab-content">
+                <p class="modal-subtitle">Login using your university credentials.</p>
+                <form id="login-form" onsubmit="handleLoginSubmit(event)" novalidate>
+                    <div class="form-group">
+                        <label for="student-email">University Email</label>
+                        <input type="email" id="student-email" placeholder="student@university.edu">
+                        <span class="error-msg" id="login-email-error">Please enter a valid email.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-password">Password</label>
+                        <input type="password" id="student-password" placeholder="••••••••">
+                        <span class="error-msg" id="login-password-error">Please enter your password.</span>
+                    </div>
+                    <span class="error-msg auth-global-error" id="login-global-error"></span>
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                </form>
+                <p class="modal-footer-text">Don't have an account? <a href="#" onclick="switchAuthTab('register'); return false;">Register here</a>.</p>
+            </div>
+            <div class="auth-tab-content" id="register-tab-content">
+                <p class="modal-subtitle">Create your student account.</p>
+                <form id="register-form" onsubmit="handleRegisterSubmit(event)" novalidate>
+                    <div class="form-group">
+                        <label for="reg-email">University Email</label>
+                        <input type="email" id="reg-email" placeholder="student@university.edu">
+                        <span class="error-msg" id="reg-email-error">Please enter a valid email.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" placeholder="Min. 6 characters">
+                        <span class="error-msg" id="reg-password-error">Password must be at least 6 characters.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-confirm-password">Confirm Password</label>
+                        <input type="password" id="reg-confirm-password" placeholder="Re-enter password">
+                        <span class="error-msg" id="reg-confirm-error">Passwords do not match.</span>
+                    </div>
+                    <span class="error-msg auth-global-error" id="reg-global-error"></span>
+                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                </form>
+                <p class="modal-footer-text">Already have an account? <a href="#" onclick="switchAuthTab('login'); return false;">Sign in here</a>.</p>
+            </div>
         </div>
     </div>
 
-    <!-- Custom Script -->
+    <!-- ADMIN LOGIN MODAL -->
+    <div class="modal-overlay" id="admin-modal" style="display: none;">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeAdminModal()"><i data-lucide="x"></i></button>
+            <h3 class="modal-title">Admin Login</h3>
+            <p class="modal-subtitle">Restricted access — administrators only.</p>
+            <form id="admin-login-form" onsubmit="handleAdminLoginSubmit(event)" novalidate>
+                <div class="form-group">
+                    <label for="admin-email">Admin Email</label>
+                    <input type="email" id="admin-email" placeholder="admin@smartevent.edu">
+                    <span class="error-msg" id="admin-email-error">Please enter a valid email.</span>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" placeholder="••••••••">
+                    <span class="error-msg" id="admin-password-error">Please enter your password.</span>
+                </div>
+                <span class="error-msg auth-global-error" id="admin-global-error"></span>
+                <button type="submit" class="btn btn-primary btn-block">Sign In as Admin</button>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

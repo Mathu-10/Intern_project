@@ -40,7 +40,18 @@ def init_db():
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        # Create logins table
+        
+        # Create users table (registered credentials)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Create logins table (audit log of login events)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS logins (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +59,8 @@ def init_db():
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        # Create predictions table
+        
+        # Create predictions table (audit log of ML inferences)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS predictions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,6 +75,49 @@ def init_db():
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        # Create admins table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS admins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+
+        # Create events table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date_day TEXT NOT NULL,
+                date_month TEXT NOT NULL,
+                category TEXT NOT NULL,
+                title TEXT NOT NULL,
+                time TEXT NOT NULL,
+                venue TEXT NOT NULL,
+                event_type TEXT NOT NULL
+            )
+        ''')
+
+        # Seed default admin account
+        cursor.execute('SELECT id FROM admins WHERE email = ?', ('admin@smartevent.edu',))
+        if not cursor.fetchone():
+            cursor.execute('INSERT INTO admins (email, password) VALUES (?, ?)', ('admin@smartevent.edu', 'admin123'))
+
+        # Seed default events if table is empty
+        cursor.execute('SELECT COUNT(*) FROM events')
+        if cursor.fetchone()[0] == 0:
+            default_events = [
+                ('15','Jun','Workshop','AI Workshop: Fundamentals of Neural Networks','10:00 AM - 01:00 PM','Block A, Seminar Hall','AI Workshop'),
+                ('18','Jun','Hackathon','GenAI Hackathon: Build LLM Prototypes','09:00 AM - 05:00 PM','Innovation Lab, CS Block','GenAI Hackathon'),
+                ('21','Jun','Seminar','Career Guidance: Industry Prep for AI/ML Roles','02:00 PM - 04:00 PM','Main Auditorium','Career Development Session'),
+                ('24','Jun','Seminar','Machine Learning Seminar: From Theory to Production','11:00 AM - 01:00 PM','Block B, Seminar Hall','Machine Learning Seminar'),
+                ('27','Jun','Bootcamp','Prompt Engineering Bootcamp: Master LLM Interactions','09:00 AM - 03:00 PM','Computer Lab 2, IT Block','Prompt Engineering Bootcamp'),
+                ('30','Jun','Challenge','Python Coding Challenge: Data Structures & Algorithms','10:00 AM - 12:00 PM','Online + Lab 3','Python Coding Challenge'),
+                ('03','Jul','Summit','Data Engineering Summit: Modern Data Stack','09:00 AM - 05:00 PM','Innovation Hub, Main Block','Data Engineering Summit'),
+                ('07','Jul','Symposium','Research Symposium: Emerging Trends in Computer Science','10:00 AM - 04:00 PM','Main Auditorium','Research Symposium'),
+            ]
+            cursor.executemany('INSERT INTO events (date_day,date_month,category,title,time,venue,event_type) VALUES (?,?,?,?,?,?,?)', default_events)
+
         conn.commit()
         conn.close()
         print("Database initialized successfully.")
@@ -118,20 +173,89 @@ def home():
         "message": "Smart Event Recommendation API"
     }), 200
 
-@app.route('/login', methods=['POST'])
-def login():
-    """Handles and audits student login attempts."""
+@app.route('/register', methods=['POST'])
+def register():
+    """Registers a new student user with credentials."""
     try:
         data = request.get_json(force=True)
         email = data.get('email')
-        password = data.get('password') # Dummy password check for college project sandbox
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({
+                "success": False,
+                "message": "Email and password are required"
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Check if user already exists
+        cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+        if cursor.fetchone():
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": "Email already registered"
+            }), 400
+
+        # Insert user (stored plain text for sandbox academic showcase purposes)
+        cursor.execute('INSERT INTO users (email, password) VALUES (?, ?)', (email, password))
+        conn.commit()
+        conn.close()
+
+        log_to_file("REGISTER", f"New user registered: {email}")
+        return jsonify({
+            "success": True,
+            "message": "User registered successfully"
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Register exception: {e}")
+        return jsonify({
+            "success": False,
+            "message": "Registration failed"
+        }), 400
+
+@app.route('/login', methods=['POST'])
+def login():
+    """Handles and verifies student login credentials."""
+    try:
+        data = request.get_json(force=True)
+        email = data.get('email')
+        password = data.get('password')
         
-        if not email:
+        if not email or not password:
             return jsonify({
                 "success": False, 
-                "message": "Email is required"
+                "message": "Email and password are required"
             }), 400
             
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Check if user exists in the database
+        cursor.execute('SELECT password FROM users WHERE email = ?', (email,))
+        row = cursor.fetchone()
+        
+        if not row:
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": "User does not exist. Please register first."
+            }), 400
+
+        db_password = row[0]
+        if db_password != password:
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": "Incorrect password"
+            }), 400
+            
+        conn.close()
+
+        # Save login audit trail
         save_login_to_db(email)
         
         return jsonify({
@@ -139,6 +263,7 @@ def login():
             "message": "Logged in successfully",
             "email": email
         }), 200
+
     except Exception as e:
         app.logger.error(f"Login exception: {e}")
         return jsonify({
@@ -229,6 +354,20 @@ def predict():
         # Predict using Random Forest classifier
         prediction_encoded = model.predict(input_df)[0]
         
+        # Get real confidence score from predict_proba
+        proba = model.predict_proba(input_df)[0]
+        confidence = round(float(max(proba)) * 100, 1)
+
+        # Get feature importances from the model
+        feature_names = ['Department', 'Year', 'Interest Area', 'Past Events', 'Attendance', 'Engagement', 'Feedback Rating']
+        importances = model.feature_importances_
+        feature_importance_list = [
+            {"feature": feature_names[i], "importance": round(float(importances[i]) * 100, 1)}
+            for i in range(len(feature_names))
+        ]
+        feature_importance_list.sort(key=lambda x: x["importance"], reverse=True)
+        top_features = feature_importance_list[:3]
+
         # Decode target label
         recommended_event = event_encoder.inverse_transform([prediction_encoded])[0]
 
@@ -237,7 +376,9 @@ def predict():
 
         return jsonify({
             "success": True,
-            "recommended_event": str(recommended_event)
+            "recommended_event": str(recommended_event),
+            "confidence": confidence,
+            "top_features": top_features
         }), 200
 
     except Exception as e:
@@ -247,9 +388,89 @@ def predict():
             "message": "Invalid input"
         }), 400
 
+@app.route('/api/events', methods=['GET'])
+def get_events():
+    """Returns events from the database."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id,date_day,date_month,category,title,time,venue,event_type FROM events ORDER BY id')
+        events = [{
+            'id': r[0], 'date_day': r[1], 'date_month': r[2], 'category': r[3],
+            'title': r[4], 'time': r[5], 'venue': r[6], 'event_type': r[7]
+        } for r in cursor.fetchall()]
+        conn.close()
+        return jsonify({'success': True, 'events': events}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/login', methods=['POST'])
+def admin_login():
+    """Admin-only login endpoint."""
+    try:
+        data = request.get_json(force=True)
+        email = data.get('email')
+        password = data.get('password')
+        if not email or not password:
+            return jsonify({'success': False, 'message': 'Email and password required'}), 400
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT password FROM admins WHERE email = ?', (email,))
+        row = cursor.fetchone()
+        conn.close()
+        if not row or row[0] != password:
+            return jsonify({'success': False, 'message': 'Invalid admin credentials'}), 400
+        log_to_file('ADMIN_LOGIN', f'Admin logged in: {email}')
+        return jsonify({'success': True, 'email': email}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Admin login failed'}), 400
+
+def verify_admin(req):
+    """Check admin session token from request header."""
+    return req.headers.get('X-Admin-Email') is not None and req.headers.get('X-Admin-Email') != ''
+
+@app.route('/admin/events', methods=['POST'])
+def add_event():
+    """Admin: Add a new event."""
+    if not verify_admin(request):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    try:
+        data = request.get_json(force=True)
+        required = ['date_day','date_month','category','title','time','venue','event_type']
+        for f in required:
+            if not data.get(f):
+                return jsonify({'success': False, 'message': f'{f} is required'}), 400
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO events (date_day,date_month,category,title,time,venue,event_type) VALUES (?,?,?,?,?,?,?)',
+            (data['date_day'], data['date_month'], data['category'], data['title'], data['time'], data['venue'], data['event_type']))
+        conn.commit()
+        new_id = cursor.lastrowid
+        conn.close()
+        log_to_file('ADMIN_ADD_EVENT', f"Added event: {data['title']}")
+        return jsonify({'success': True, 'id': new_id}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/events/<int:event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    """Admin: Delete an event by ID."""
+    if not verify_admin(request):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM events WHERE id = ?', (event_id,))
+        conn.commit()
+        conn.close()
+        log_to_file('ADMIN_DELETE_EVENT', f'Deleted event ID: {event_id}')
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/activity', methods=['GET'])
 def get_activity():
-    """Retrieves prediction audit logs and login histories."""
+    """Retrieves prediction logs, login audit trails, and registered users list."""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -257,6 +478,10 @@ def get_activity():
         # Get last 50 logins
         cursor.execute('SELECT email, timestamp FROM logins ORDER BY timestamp DESC LIMIT 50')
         logins = [{"email": row[0], "timestamp": row[1]} for row in cursor.fetchall()]
+        
+        # Get registered users list
+        cursor.execute('SELECT email, created_at FROM users ORDER BY created_at DESC LIMIT 50')
+        users = [{"email": row[0], "created_at": row[1]} for row in cursor.fetchall()]
         
         # Get last 50 predictions
         cursor.execute('''
@@ -283,6 +508,7 @@ def get_activity():
         return jsonify({
             "success": True,
             "logins": logins,
+            "users": users,
             "predictions": predictions
         }), 200
     except Exception as e:

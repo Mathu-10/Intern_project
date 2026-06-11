@@ -1,3 +1,50 @@
+// Global store for events fetched from backend
+let allEvents = [];
+
+// Fetch and render upcoming events from backend
+async function loadUpcomingEvents(recommendedEventType = null) {
+    const grid = document.getElementById('events-grid');
+    if (!grid) return;
+
+    try {
+        if (allEvents.length === 0) {
+            const res = await fetch(`${API_BASE_URL}/api/events`);
+            const data = await res.json();
+            if (data.success) allEvents = data.events;
+        }
+
+        let sorted = [...allEvents];
+        if (recommendedEventType) {
+            sorted.sort((a, b) => {
+                const aMatch = a.event_type === recommendedEventType ? -1 : 0;
+                const bMatch = b.event_type === recommendedEventType ? -1 : 0;
+                return aMatch - bMatch;
+            });
+        }
+
+        grid.innerHTML = sorted.map(ev => {
+            const isMatch = recommendedEventType && ev.event_type === recommendedEventType;
+            return `
+                <div class="event-card-horizontal${isMatch ? ' event-card-highlighted' : ''}">
+                    <div class="event-date-badge">
+                        <span class="day">${ev.date_day}</span>
+                        <span class="month">${ev.date_month}</span>
+                    </div>
+                    <div class="event-details">
+                        <span class="event-category-label">${ev.category}${isMatch ? ' &nbsp;<span class="rec-tag">&#10003; Recommended for You</span>' : ''}</span>
+                        <h3 class="event-name-title">${ev.title}</h3>
+                        <p class="event-meta"><i data-lucide="clock"></i> ${ev.time} | <i data-lucide="map-pin"></i> ${ev.venue}</p>
+                    </div>
+                    <button class="btn ${isMatch ? 'btn-primary' : 'btn-outline'}" onclick="quickRegister('${ev.event_type}')">Register</button>
+                </div>
+            `;
+        }).join('');
+        lucide.createIcons();
+    } catch (err) {
+        grid.innerHTML = `<div class="text-center" style="padding:40px;color:var(--text-muted);">Could not load events. Ensure the backend is running.</div>`;
+    }
+}
+
 // Global helper variables and configurations
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
@@ -134,6 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedEmail = localStorage.getItem('student_email');
     if (savedEmail) {
         updateNavbarLoginState(savedEmail);
+    }
+
+    // Check existing admin session state
+    const savedAdmin = localStorage.getItem('admin_email');
+    if (savedAdmin) {
+        updateNavbarAdminState(savedAdmin);
         const adminSection = document.getElementById('admin-section');
         if (adminSection) adminSection.style.display = 'block';
         fetchActivityLogs();
@@ -141,6 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Statistics Increment Animation
     animateStatistics();
+
+    // Load upcoming events on page load
+    loadUpcomingEvents();
 
     // Recommendation Form Submit Handler
     if (recommendationForm) {
@@ -181,11 +237,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (result.success) {
-                    // Introduce a tiny artificial delay to make the loading transition smooth
                     setTimeout(() => {
-                        renderRecommendation(result.recommended_event, payload);
+                        renderRecommendation(result.recommended_event, result.confidence, result.top_features);
                         showCardState('result');
-                        // If logged in, fetch activity logs automatically to show user's action
+                        // Highlight matching event in upcoming events section
+                        loadUpcomingEvents(result.recommended_event);
+                        // Scroll to upcoming events section
+                        setTimeout(() => {
+                            document.getElementById('upcoming').scrollIntoView({ behavior: 'smooth' });
+                        }, 1200);
                         if (localStorage.getItem('student_email')) {
                             fetchActivityLogs();
                         }
@@ -260,21 +320,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Render Recommendation Details into UI
-    function renderRecommendation(eventName, inputs) {
-        // Find metadata or use fallback
+    function renderRecommendation(eventName, confidence, topFeatures) {
         const meta = eventMetadata[eventName] || {
             category: 'Academic & Technical',
             difficulty: 'Intermediate',
             description: 'An engaging campus technical session tailored to develop your academic profile and vocational skills.'
         };
 
-        // Populate elements
         eventNameEl.textContent = eventName;
         eventCategoryEl.textContent = meta.category;
         eventDifficultyEl.textContent = meta.difficulty;
         eventDescEl.textContent = meta.description;
 
-        // Apply visual updates based on difficulty
         eventDifficultyEl.className = 'difficulty-tag';
         if (meta.difficulty === 'Beginner') {
             eventDifficultyEl.style.backgroundColor = 'var(--success-light)';
@@ -287,25 +344,37 @@ document.addEventListener('DOMContentLoaded', () => {
             eventDifficultyEl.style.color = 'var(--text-secondary)';
         }
 
-        // Calculate a realistic Match Score
-        // Base score on affinity rules
-        let baseScore = 75;
-        // Boost score slightly if attendance is high
-        if (inputs.attendance_percentage > 85) baseScore += 8;
-        // Boost if they have attended past events
-        if (inputs.past_events_attended > 3) baseScore += 5;
-        // Boost if feedback is active
-        if (inputs.feedback_rating >= 4) baseScore += 5;
-        // Clamp between 75 and 98
-        const finalScore = Math.min(98, Math.max(75, baseScore));
-
+        // Use real confidence score from model
+        const finalScore = (typeof confidence === 'number' && confidence > 0) ? Math.min(99, confidence) : 75;
         matchScoreText.textContent = `${finalScore}%`;
         matchScoreFill.style.width = '0%';
-        
-        // Animate fill bar loading
-        setTimeout(() => {
-            matchScoreFill.style.width = `${finalScore}%`;
-        }, 100);
+        setTimeout(() => { matchScoreFill.style.width = `${finalScore}%`; }, 100);
+
+        // Render feature importance bars
+        const barsContainer = document.getElementById('feature-importance-bars');
+        if (barsContainer && topFeatures && topFeatures.length > 0) {
+            // Normalize bar widths relative to the top feature
+            const maxVal = topFeatures[0].importance;
+            barsContainer.innerHTML = topFeatures.map(f => {
+                const barWidth = maxVal > 0 ? Math.round((f.importance / maxVal) * 100) : 0;
+                return `
+                    <div class="fi-row">
+                        <span class="fi-label">${f.feature}</span>
+                        <div class="fi-bar-track">
+                            <div class="fi-bar-fill" style="width: 0%" data-width="${barWidth}"></div>
+                        </div>
+                        <span class="fi-val">${f.importance}%</span>
+                    </div>
+                `;
+            }).join('');
+            // Animate bars in
+            setTimeout(() => {
+                barsContainer.querySelectorAll('.fi-bar-fill').forEach(bar => {
+                    bar.style.width = bar.getAttribute('data-width') + '%';
+                });
+            }, 150);
+        }
+        lucide.createIcons();
     }
 
     // Render error card state if API fails
@@ -351,10 +420,31 @@ document.addEventListener('DOMContentLoaded', () => {
 // Event Handlers for UI Popups & Sessions
 function openLoginModal() {
     document.getElementById('login-modal').style.display = 'flex';
+    switchAuthTab('login');
 }
 
 function closeLoginModal() {
     document.getElementById('login-modal').style.display = 'none';
+    // Clear all inline errors and inputs on close
+    ['login-form', 'register-form'].forEach(id => {
+        const f = document.getElementById(id);
+        if (f) {
+            f.querySelectorAll('input').forEach(inp => inp.value = '');
+            f.querySelectorAll('.form-group').forEach(g => g.classList.remove('invalid'));
+        }
+    });
+    ['login-global-error', 'reg-global-error'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = ''; el.style.display = 'none'; }
+    });
+}
+
+// Switch between Login and Register tabs inside the modal
+function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.auth-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`${tab}-tab-btn`).classList.add('active');
+    document.getElementById(`${tab}-tab-content`).classList.add('active');
 }
 
 // Update navbar layout dynamically on login state
@@ -376,18 +466,44 @@ function updateNavbarLoginState(email) {
     lucide.createIcons();
 }
 
+// Show inline error on a form field
+function setFieldError(inputId, errorId, show) {
+    const input = document.getElementById(inputId);
+    const group = input ? input.parentElement : null;
+    if (group) show ? group.classList.add('invalid') : group.classList.remove('invalid');
+}
+
+// Show global form error message
+function setGlobalError(id, message) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (message) { el.textContent = message; el.style.display = 'block'; }
+    else { el.textContent = ''; el.style.display = 'none'; }
+}
+
 // POST login request to the Flask server
 async function handleLoginSubmit(e) {
     e.preventDefault();
-    const email = document.getElementById('student-email').value;
+    const email = document.getElementById('student-email').value.trim();
     const password = document.getElementById('student-password').value;
+
+    // Client-side validation
+    let valid = true;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    setFieldError('student-email', 'login-email-error', !emailOk);
+    if (!emailOk) valid = false;
+
+    const passOk = password.length > 0;
+    setFieldError('student-password', 'login-password-error', !passOk);
+    if (!passOk) valid = false;
+
+    if (!valid) return;
+    setGlobalError('login-global-error', '');
 
     try {
         const response = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
 
@@ -397,28 +513,61 @@ async function handleLoginSubmit(e) {
             localStorage.setItem('student_email', email);
             updateNavbarLoginState(email);
             closeLoginModal();
-
-            // Display and populate the Admin section
-            const adminSection = document.getElementById('admin-section');
-            if (adminSection) {
-                adminSection.style.display = 'block';
-                // Scroll to Admin section smoothly
-                setTimeout(() => {
-                    adminSection.scrollIntoView({ behavior: 'smooth' });
-                }, 300);
-            }
-            fetchActivityLogs();
-            alert(`Welcome back! Logged in successfully as: ${email}`);
         } else {
-            alert('Login failed: ' + (result.message || 'Server error'));
+            setGlobalError('login-global-error', result.message || 'Login failed. Please try again.');
         }
     } catch (err) {
         console.error('Login error:', err);
-        // Fallback mockup login if server is offline
-        localStorage.setItem('student_email', email);
-        updateNavbarLoginState(email);
-        closeLoginModal();
-        alert(`Offline Mode: Dummy login successful for ${email}. Start the backend server to audit logins.`);
+        setGlobalError('login-global-error', 'Cannot connect to server. Please start the backend.');
+    }
+}
+
+// POST register request to the Flask server
+async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm = document.getElementById('reg-confirm-password').value;
+
+    // Client-side validation
+    let valid = true;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    setFieldError('reg-email', 'reg-email-error', !emailOk);
+    if (!emailOk) valid = false;
+
+    const passOk = password.length >= 6;
+    setFieldError('reg-password', 'reg-password-error', !passOk);
+    if (!passOk) valid = false;
+
+    const confirmOk = password === confirm && confirm.length > 0;
+    setFieldError('reg-confirm-password', 'reg-confirm-error', !confirmOk);
+    if (!confirmOk) valid = false;
+
+    if (!valid) return;
+    setGlobalError('reg-global-error', '');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            // Auto-switch to login tab with success message
+            switchAuthTab('login');
+            setGlobalError('login-global-error', '');
+            document.getElementById('student-email').value = email;
+            setGlobalError('login-global-error', '✓ Account created! You can now sign in.');
+            document.getElementById('login-global-error').style.color = 'var(--success-color)';
+        } else {
+            setGlobalError('reg-global-error', result.message || 'Registration failed. Please try again.');
+        }
+    } catch (err) {
+        console.error('Register error:', err);
+        setGlobalError('reg-global-error', 'Cannot connect to server. Please start the backend.');
     }
 }
 
@@ -426,9 +575,293 @@ async function handleLoginSubmit(e) {
 function handleLogout() {
     localStorage.removeItem('student_email');
     updateNavbarLoginState(null);
+}
+
+// ── ADMIN AUTH ──────────────────────────────────────────────
+function openAdminModal() {
+    document.getElementById('admin-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeAdminModal() {
+    document.getElementById('admin-modal').style.display = 'none';
+    ['admin-email','admin-password'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    ['admin-email-error','admin-password-error'].forEach(id => { const el = document.getElementById(id); if(el) el.parentElement.classList.remove('invalid'); });
+    setGlobalError('admin-global-error','');
+}
+
+async function handleAdminLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('admin-email').value.trim();
+    const password = document.getElementById('admin-password').value;
+
+    let valid = true;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    setFieldError('admin-email', 'admin-email-error', !emailOk);
+    if (!emailOk) valid = false;
+    const passOk = password.length > 0;
+    setFieldError('admin-password', 'admin-password-error', !passOk);
+    if (!passOk) valid = false;
+    if (!valid) return;
+    setGlobalError('admin-global-error', '');
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            localStorage.setItem('admin_email', email);
+            closeAdminModal();
+            updateNavbarAdminState(email);
+            const adminSection = document.getElementById('admin-section');
+            if (adminSection) {
+                adminSection.style.display = 'block';
+                setTimeout(() => adminSection.scrollIntoView({ behavior: 'smooth' }), 300);
+            }
+            fetchActivityLogs();
+            loadAdminEvents();
+        } else {
+            setGlobalError('admin-global-error', result.message || 'Invalid admin credentials.');
+        }
+    } catch (err) {
+        setGlobalError('admin-global-error', 'Cannot connect to server.');
+    }
+}
+
+function handleAdminLogout() {
+    localStorage.removeItem('admin_email');
+    updateNavbarAdminState(null);
     const adminSection = document.getElementById('admin-section');
     if (adminSection) adminSection.style.display = 'none';
-    alert('Logged out successfully.');
+}
+
+function updateNavbarAdminState(email) {
+    // Reuse nav-actions-container only if student is NOT logged in
+    const studentEmail = localStorage.getItem('student_email');
+    const container = document.getElementById('nav-actions-container');
+    if (!container) return;
+    if (email) {
+        container.innerHTML = `
+            <span class="user-welcome" style="color:var(--warning-color);"><i data-lucide="shield"></i> ${email}</span>
+            <button class="btn btn-outline" onclick="handleAdminLogout()" style="padding:6px 14px;font-size:0.85rem;">Admin Logout</button>
+            ${studentEmail ? '' : '<a href="#recommendations" class="btn btn-primary">Get Started</a>'}
+        `;
+    } else if (!studentEmail) {
+        container.innerHTML = `
+            <button class="btn btn-outline" onclick="openLoginModal()">Student Login</button>
+            <button class="btn btn-outline" onclick="openAdminModal()" style="border-color:var(--warning-color);color:var(--warning-color);">Admin</button>
+            <a href="#recommendations" class="btn btn-primary">Get Started</a>
+        `;
+    }
+    lucide.createIcons();
+}
+
+// ── ADMIN EVENT MANAGEMENT ───────────────────────────────────
+async function loadAdminEvents() {
+    const tbody = document.getElementById('admin-events-body');
+    if (!tbody) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/events`);
+        const data = await res.json();
+        if (data.success && data.events.length > 0) {
+            tbody.innerHTML = data.events.map(ev => `
+                <tr>
+                    <td>${ev.date_day} ${ev.date_month}</td>
+                    <td>${ev.category}</td>
+                    <td><strong>${ev.title}</strong></td>
+                    <td>${ev.time}</td>
+                    <td>${ev.venue}</td>
+                    <td><span style="color:var(--accent-color);font-weight:600;">${ev.event_type}</span></td>
+                    <td><button class="btn btn-outline" style="padding:4px 10px;font-size:0.8rem;color:var(--danger-color);border-color:var(--danger-color);" onclick="adminDeleteEvent(${ev.id})">Delete</button></td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No events found.</td></tr>';
+        }
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--danger-color);">Could not load events.</td></tr>';
+    }
+}
+
+async function adminAddEvent() {
+    const adminEmail = localStorage.getItem('admin_email');
+    if (!adminEmail) return;
+
+    const title = document.getElementById('ev-title').value.trim();
+    const category = document.getElementById('ev-category').value.trim();
+    const day = document.getElementById('ev-day').value.trim();
+    const month = document.getElementById('ev-month').value.trim();
+    const time = document.getElementById('ev-time').value.trim();
+    const venue = document.getElementById('ev-venue').value.trim();
+    const eventType = document.getElementById('ev-type').value;
+
+    if (!title || !category || !day || !month || !time || !venue || !eventType) {
+        setGlobalError('ev-error', 'All fields are required.');
+        return;
+    }
+    setGlobalError('ev-error', '');
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/events`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Admin-Email': adminEmail },
+            body: JSON.stringify({ title, category, date_day: day, date_month: month, time, venue, event_type: eventType })
+        });
+        const result = await res.json();
+        if (result.success) {
+            // Clear form
+            ['ev-title','ev-category','ev-day','ev-month','ev-time','ev-venue'].forEach(id => { document.getElementById(id).value = ''; });
+            document.getElementById('ev-type').value = '';
+            allEvents = []; // reset cache so upcoming events reloads
+            loadAdminEvents();
+            loadUpcomingEvents();
+        } else {
+            setGlobalError('ev-error', result.message || 'Failed to add event.');
+        }
+    } catch (err) {
+        setGlobalError('ev-error', 'Cannot connect to server.');
+    }
+}
+
+async function adminDeleteEvent(id) {
+    const adminEmail = localStorage.getItem('admin_email');
+    if (!adminEmail) return;
+    if (!confirm('Delete this event?')) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/events/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-Admin-Email': adminEmail }
+        });
+        const result = await res.json();
+        if (result.success) {
+            allEvents = [];
+            loadAdminEvents();
+            loadUpcomingEvents();
+        }
+    } catch (err) {
+        console.error('Delete event error:', err);
+    }
+}
+
+// Chart instances — kept to allow destroy on re-render
+let chartEvents = null, chartDepts = null, chartLogins = null;
+
+function renderCharts(predictions, logins) {
+    // --- Chart 1: Most Recommended Events (Bar) ---
+    const eventCounts = {};
+    predictions.forEach(p => {
+        eventCounts[p.recommended_event] = (eventCounts[p.recommended_event] || 0) + 1;
+    });
+    const eventLabels = Object.keys(eventCounts);
+    const eventData = Object.values(eventCounts);
+
+    if (chartEvents) chartEvents.destroy();
+    const ctxE = document.getElementById('chart-events');
+    if (ctxE) {
+        chartEvents = new Chart(ctxE, {
+            type: 'bar',
+            data: {
+                labels: eventLabels,
+                datasets: [{
+                    label: 'Recommendations',
+                    data: eventData,
+                    backgroundColor: 'rgba(37, 99, 235, 0.75)',
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#F1F5F9' } }
+                }
+            }
+        });
+    }
+
+    // --- Chart 2: Department Activity (Pie) ---
+    const deptCounts = {};
+    predictions.forEach(p => {
+        deptCounts[p.department] = (deptCounts[p.department] || 0) + 1;
+    });
+    const deptLabels = Object.keys(deptCounts);
+    const deptData = Object.values(deptCounts);
+    const pieColors = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+
+    if (chartDepts) chartDepts.destroy();
+    const ctxD = document.getElementById('chart-departments');
+    if (ctxD) {
+        chartDepts = new Chart(ctxD, {
+            type: 'pie',
+            data: {
+                labels: deptLabels,
+                datasets: [{
+                    data: deptData,
+                    backgroundColor: pieColors.slice(0, deptLabels.length),
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 12 } }
+                }
+            }
+        });
+    }
+
+    // --- Chart 3: Login Activity last 7 days (Line) ---
+    const today = new Date();
+    const dayLabels = [];
+    const dayCounts = {};
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const key = d.toISOString().substring(0, 10);
+        dayLabels.push(key.substring(5)); // MM-DD
+        dayCounts[key] = 0;
+    }
+    logins.forEach(l => {
+        const key = l.timestamp.substring(0, 10);
+        if (dayCounts.hasOwnProperty(key)) dayCounts[key]++;
+    });
+    const loginData = Object.values(dayCounts);
+
+    if (chartLogins) chartLogins.destroy();
+    const ctxL = document.getElementById('chart-logins');
+    if (ctxL) {
+        chartLogins = new Chart(ctxL, {
+            type: 'line',
+            data: {
+                labels: dayLabels,
+                datasets: [{
+                    label: 'Logins',
+                    data: loginData,
+                    borderColor: '#2563EB',
+                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#2563EB',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#F1F5F9' } }
+                }
+            }
+        });
+    }
 }
 
 // Query backend /api/activity logs and render tables
@@ -443,6 +876,9 @@ async function fetchActivityLogs() {
         const result = await response.json();
 
         if (result.success) {
+            // Render charts from activity data
+            renderCharts(result.predictions || [], result.logins || []);
+
             // Render predictions logs
             if (result.predictions && result.predictions.length > 0) {
                 predictionsBody.innerHTML = result.predictions.map(pred => {
@@ -489,19 +925,11 @@ async function fetchActivityLogs() {
 
 // Switch between predictions and logins tabs in admin panel
 function switchAdminTab(tabId) {
-    // Hide all tab contents
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    // Remove active state from all tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    // Show selected tab content
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
-    // Highlight active tab button
     document.getElementById(`${tabId}-btn`).classList.add('active');
+    if (tabId === 'events-tab') loadAdminEvents();
 }
 
 function registerForEvent() {
