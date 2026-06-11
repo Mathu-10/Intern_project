@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartEvent AI - Smart Event Recommendation Platform for Students</title>
+    <meta name="description" content="An AI-powered university event recommendation engine tailored to student profiles and academic interests.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#home" class="nav-logo">
+                <span class="logo-icon"><i data-lucide="sparkles"></i></span>
+                SmartEvent <span class="accent-text">AI</span>
+            </a>
+            
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle Navigation">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item"><a href="#home" class="nav-link active">Home</a></li>
+                <li class="nav-item"><a href="#features" class="nav-link">Features</a></li>
+                <li class="nav-item"><a href="#recommendations" class="nav-link">Recommendations</a></li>
+                <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
+                <li class="nav-actions" id="nav-actions-container">
+                    <button class="btn btn-outline" onclick="openLoginModal()">Student Login</button>
+                    <a href="#recommendations" class="btn btn-primary">Get Started</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero" id="home">
+        <div class="hero-container">
+            <div class="hero-content">
+                <span class="badge hero-badge">College Project AI/ML</span>
+                <h1 class="hero-title">Discover Events Tailored to Your Interests</h1>
+                <p class="hero-subtitle">An AI-powered platform that recommends workshops, hackathons, seminars, and technical events based on your academic profile and interests.</p>
+                <div class="hero-buttons">
+                    <a href="#recommendations" class="btn btn-primary btn-lg">Get Recommendation</a>
+                    <a href="#upcoming" class="btn btn-secondary btn-lg">Explore Events</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="hero_illustration.png" alt="Student studying with AI interfaces" class="illustration-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section class="features" id="features">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Features</span>
+                <h2 class="section-title">Designed for Student Success</h2>
+                <p class="section-subtitle">Leveraging machine learning to map academic metrics directly to high-impact campus events.</p>
+            </div>
+            
+            <div class="features-grid">
+                <!-- Card 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="sliders"></i></div>
+                    <h3 class="feature-title">Personalized Recommendations</h3>
+                    <p class="feature-desc">Recommends ideal events by evaluating year, academic attendance, feedback behavior, and engagement levels.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="cpu"></i></div>
+                    <h3 class="feature-title">AI-Based Matching</h3>
+                    <p class="feature-desc">Uses a Random Forest Classifier trained on student historical participation logs to achieve highly accurate predictions.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="graduation-cap"></i></div>
+                    <h3 class="feature-title">Department Specific Suggestions</h3>
+                    <p class="feature-desc">Tailors events to your department (AIML, CSE, ECE, EEE, IT) to build a robust, domain-aligned portfolio.</p>
+                </div>
+                <!-- Card 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="bar-chart-3"></i></div>
+                    <h3 class="feature-title">Student Engagement Analytics</h3>
+                    <p class="feature-desc">Encourages higher engagement by recommending events that match and challenge your current skill progress.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-it-works">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Process</span>
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Get your tailored recommendations in three simple steps.</p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-num">01</div>
+                    <div class="step-icon"><i data-lucide="user-check"></i></div>
+                    <h3 class="step-title">Enter Student Details</h3>
+                    <p class="step-desc">Provide your academic major, year, past events record, and domain interest area.</p>
+                </div>
+                <div class="step-arrow"><i data-lucide="arrow-right"></i></div>
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <div class="step-icon"><i data-lucide="cog" class="spin-slow"></i></div>
+                    <h3 class="step-title">AI Recommendation Engine</h3>
+                    <p class="step-desc">Our trained Random Forest model processes your profile vectors in real-time.</p>
+                </div>
+                <div class="step-arrow"><i data-lucide="arrow-right"></i></div>
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <div class="step-icon"><i data-lucide="award"></i></div>
+                    <h3 class="step-title">Personalized Event Suggestion</h3>
+                    <p class="step-desc">Instantly receive a curated event suggestion matching your skills and interests.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECOMMENDATION FORM & RESULT CARD -->
+    <section class="recommendations" id="recommendations">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Interactive Tool</span>
+                <h2 class="section-title">Get Smart Event Recommendations</h2>
+                <p class="section-subtitle">Fill in your profile details below to query the machine learning model.</p>
+            </div>
+
+            <div class="rec-grid">
+                <!-- FORM CARD -->
+                <div class="card form-card">
+                    <h3 class="card-title">Student Academic Profile</h3>
+                    <form id="recommendation-form" novalidate>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="department">Department</label>
+                                <select id="department" name="department" required>
+                                    <option value="" disabled selected>Select Department</option>
+                                    <option value="AIML">Artificial Intelligence & Machine Learning (AIML)</option>
+                                    <option value="CSE">Computer Science & Engineering (CSE)</option>
+                                    <option value="ECE">Electronics & Communication (ECE)</option>
+                                    <option value="EEE">Electrical & Electronics (EEE)</option>
+                                    <option value="IT">Information Technology (IT)</option>
+                                </select>
+                                <span class="error-msg" id="department-error">Please select a department.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year">Year of Study</label>
+                                <select id="year" name="year" required>
+                                    <option value="" disabled selected>Select Year</option>
+                                    <option value="1">1st Year (Freshman)</option>
+                                    <option value="2">2nd Year (Sophomore)</option>
+                                    <option value="3">3rd Year (Junior)</option>
+                                    <option value="4">4th Year (Senior)</option>
+                                </select>
+                                <span class="error-msg" id="year-error">Please select your year.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="interest_area">Interest Area</label>
+                                <select id="interest_area" name="interest_area" required>
+                                    <option value="" disabled selected>Select Interest Area</option>
+                                    <option value="AI">Artificial Intelligence (AI)</option>
+                                    <option value="Cloud">Cloud Computing & DevOps</option>
+                                    <option value="Data Engineering">Data Engineering & Analytics</option>
+                                    <option value="GenAI">Generative AI (GenAI)</option>
+                                    <option value="Machine Learning">Machine Learning (ML)</option>
+                                    <option value="Python">Python Development</option>
+                                </select>
+                                <span class="error-msg" id="interest-error">Please select your interest area.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="engagement_status">Engagement Status</label>
+                                <select id="engagement_status" name="engagement_status" required>
+                                    <option value="" disabled selected>Select Engagement Level</option>
+                                    <option value="Registered">Registered (Enrolled in events)</option>
+                                    <option value="Interested">Interested (Shortlisted events)</option>
+                                    <option value="Attended">Attended (Completed past events)</option>
+                                </select>
+                                <span class="error-msg" id="engagement-error">Please select your engagement status.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="past_events_attended">Past Events Attended</label>
+                                <input type="number" id="past_events_attended" name="past_events_attended" min="0" max="30" placeholder="e.g. 5" required>
+                                <span class="error-msg" id="past-events-error">Enter a value between 0 and 30.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="feedback_rating">Typical Feedback Rating</label>
+                                <select id="feedback_rating" name="feedback_rating" required>
+                                    <option value="" disabled selected>Select Rating (1-5)</option>
+                                    <option value="1">1 Star (Dissatisfied)</option>
+                                    <option value="2">2 Stars (Fair)</option>
+                                    <option value="3">3 Stars (Satisfied)</option>
+                                    <option value="4">4 Stars (Very Good)</option>
+                                    <option value="5">5 Stars (Excellent)</option>
+                                </select>
+                                <span class="error-msg" id="feedback-error">Please select a feedback rating.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="slider-label-container">
+                                <label for="attendance_percentage">Academic Attendance Percentage</label>
+                                <span class="slider-value" id="attendance-display">75%</span>
+                            </div>
+                            <input type="range" id="attendance_percentage" name="attendance_percentage" min="0" max="100" value="75" class="slider">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn">
+                            Get Smart Recommendation
+                        </button>
+                    </form>
+                </div>
+
+                <!-- RESULT CARD -->
+                <div class="card result-card" id="result-card">
+                    <div class="result-placeholder" id="result-placeholder">
+                        <div class="placeholder-icon"><i data-lucide="help-circle"></i></div>
+                        <h3 class="placeholder-title">No recommendation generated.</h3>
+                        <p class="placeholder-desc">Fill out the student academic profile form and click the button to generate an event suggestion powered by Random Forest.</p>
+                    </div>
+
+                    <!-- Loader Animation -->
+                    <div class="result-loader" id="result-loader" style="display: none;">
+                        <div class="spinner"></div>
+                        <h3 class="loader-title">Finding the best event for you...</h3>
+                        <p class="loader-desc">Running inputs through AI/ML model vectors.</p>
+                    </div>
+
+                    <!-- Prediction Result Display -->
+                    <div class="result-display" id="result-display" style="display: none;">
+                        <div class="result-header-row">
+                            <span class="badge result-badge"><i data-lucide="sparkles"></i> Recommended for You</span>
+                            <span class="difficulty-tag" id="event-difficulty">Intermediate</span>
+                        </div>
+                        
+                        <h3 class="event-title" id="event-name">AI Hackathon</h3>
+                        <span class="category-tag" id="event-category">Computer Science</span>
+                        
+                        <p class="event-description" id="event-description">
+                            A collaborative environment where students develop AI/ML solutions in a fast-paced environment.
+                        </p>
+
+                        <div class="score-container">
+                            <div class="score-label-row">
+                                <span class="score-label">ML Prediction Confidence / Match Score</span>
+                                <span class="score-val" id="match-score-text">88%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="match-score-fill" style="width: 88%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="result-action">
+                            <button class="btn btn-primary btn-block" onclick="registerForEvent()">
+                                <i data-lucide="check-square"></i> Register for Event
+                            </button>
+                            <p class="result-info">Registration notification will be sent to your student dashboard.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATISTICS SECTION -->
+    <section class="statistics" id="stats">
+        <div class="section-container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" data-target="100">100+</div>
+                    <div class="stat-label">Events Managed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" data-target="1000">1000+</div>
+                    <div class="stat-label">Students Recommended</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number-text">AI Powered</div>
+                    <div class="stat-label">Recommendation Engine</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" data-target="7">7</div>
+                    <div class="stat-label">Academic Departments</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- UPCOMING EVENTS -->
+    <section class="upcoming-events" id="upcoming">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Upcoming</span>
+                <h2 class="section-title">Trending Events This Week</h2>
+                <p class="section-subtitle">Browse through current college events open for registrations across departments.</p>
+            </div>
+
+            <div class="events-grid">
+                <!-- Event 1 -->
+                <div class="event-card-horizontal">
+                    <div class="event-date-badge">
+                        <span class="day">15</span>
+                        <span class="month">Jun</span>
+                    </div>
+                    <div class="event-details">
+                        <span class="event-category-label">Workshop</span>
+                        <h3 class="event-name-title">AI Workshop: Fundamentals of Neural Networks</h3>
+                        <p class="event-meta"><i data-lucide="clock"></i> 10:00 AM - 01:00 PM | <i data-lucide="map-pin"></i> Block A, Seminar Hall</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="quickRegister('AI Workshop')">Register</button>
+                </div>
+                <!-- Event 2 -->
+                <div class="event-card-horizontal">
+                    <div class="event-date-badge">
+                        <span class="day">18</span>
+                        <span class="month">Jun</span>
+                    </div>
+                    <div class="event-details">
+                        <span class="event-category-label">Hackathon</span>
+                        <h3 class="event-name-title">GenAI Hackathon: Build LLM Prototypes</h3>
+                        <p class="event-meta"><i data-lucide="clock"></i> 09:00 AM - 05:00 PM | <i data-lucide="map-pin"></i> Innovation Lab, CS Block</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="quickRegister('GenAI Hackathon')">Register</button>
+                </div>
+                <!-- Event 3 -->
+                <div class="event-card-horizontal">
+                    <div class="event-date-badge">
+                        <span class="day">21</span>
+                        <span class="month">Jun</span>
+                    </div>
+                    <div class="event-details">
+                        <span class="event-category-label">Seminar</span>
+                        <h3 class="event-name-title">Career Guidance: Industry Prep for AI/ML Roles</h3>
+                        <p class="event-meta"><i data-lucide="clock"></i> 02:00 PM - 04:00 PM | <i data-lucide="map-pin"></i> Main Auditorium</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="quickRegister('Career Development Session')">Register</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials" id="about">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Testimonials</span>
+                <h2 class="section-title">What Our Students Say</h2>
+                <p class="section-subtitle">Real feedback from college students who upgraded their profiles using our AI suggestions.</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <!-- Card 1 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "The GenAI Hackathon recommendation was spot on. I met my co-developers there, and we built a web app that won second place in the department!"
+                    </div>
+                    <div class="student-profile">
+                        <div class="student-avatar text-avatar">AR</div>
+                        <div class="student-info">
+                            <h4 class="student-name">Aravind Raj</h4>
+                            <span class="student-dept">3rd Year, AIML</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "I used to attend generic workshops that didn't align with my goals. The algorithm recommended the Data Engineering Summit, which got me started in databases."
+                    </div>
+                    <div class="student-profile">
+                        <div class="student-avatar text-avatar">SK</div>
+                        <div class="student-info">
+                            <h4 class="student-name">Sneha Kapoor</h4>
+                            <span class="student-dept">4th Year, CSE</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "Extremely simple UI. I filled out my interest as Python, got recommended the coding challenge, and ended up securing a certificate of merit."
+                    </div>
+                    <div class="student-profile">
+                        <div class="student-avatar text-avatar">VM</div>
+                        <div class="student-info">
+                            <h4 class="student-name">Vikram Malhotra</h4>
+                            <span class="student-dept">2nd Year, IT</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ADMIN ACTIVITY LOGS SECTION -->
+    <section class="admin-section" id="admin-section" style="display: none;">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Admin Dashboard</span>
+                <h2 class="section-title">Backend Activity Logs</h2>
+                <p class="section-subtitle">Real-time database audit showing student logins and prediction records.</p>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" id="predictions-tab-btn" onclick="switchAdminTab('predictions-tab')">Prediction Logs</button>
+                <button class="tab-btn" id="logins-tab-btn" onclick="switchAdminTab('logins-tab')">Login History</button>
+                <button class="btn btn-outline" onclick="fetchActivityLogs()" style="padding: 6px 14px; font-size: 0.85rem; margin-left: auto;">
+                    <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Predictions Table -->
+            <div class="tab-content active" id="predictions-tab">
+                <div class="table-responsive">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Department</th>
+                                <th>Year</th>
+                                <th>Interest Area</th>
+                                <th>Past Events</th>
+                                <th>Attendance</th>
+                                <th>Rating</th>
+                                <th>Recommended Event</th>
+                            </tr>
+                        </thead>
+                        <tbody id="predictions-log-body">
+                            <tr>
+                                <td colspan="8" class="text-center">No predictions logged yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Logins Table -->
+            <div class="tab-content" id="logins-tab">
+                <div class="table-responsive">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logins-log-body">
+                            <tr>
+                                <td colspan="2" class="text-center">No login history logged yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <p class="logs-path-info">Logs are also saved to: <code>backend/logs/activity.log</code> and SQLite database: <code>backend/data.db</code></p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand-section">
+                <a href="#home" class="footer-logo">
+                    <span class="logo-icon"><i data-lucide="sparkles"></i></span>
+                    SmartEvent <span class="accent-text">AI</span>
+                </a>
+                <p class="footer-desc">
+                    An AI-powered academic and career event recommendations platform designed for university students. Secure your future portfolio.
+                </p>
+                <div class="social-links">
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="GitHub"><i data-lucide="github"></i></a>
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="LinkedIn"><i data-lucide="linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-links-section">
+                <h4 class="footer-title">Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#recommendations">Get Recommendation</a></li>
+                    <li><a href="#upcoming">Upcoming Events</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-contact-section">
+                <h4 class="footer-title">Contact</h4>
+                <ul class="footer-contact">
+                    <li><i data-lucide="mail"></i> <span class="contact-text">support@smartevent.edu</span></li>
+                    <li><i data-lucide="map-pin"></i> <span class="contact-text">University Innovation Center, Tech Campus</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 SmartEvent AI. All rights reserved. Created for College AI/ML Project.</p>
+        </div>
+    </footer>
+
+    <!-- POPUPS / DUMMY LOGIN MODAL -->
+    <div class="modal-overlay" id="login-modal" style="display: none;">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeLoginModal()"><i data-lucide="x"></i></button>
+            <h3 class="modal-title">Student Login</h3>
+            <p class="modal-subtitle">Login using your university credentials.</p>
+            <form id="dummy-login-form" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label for="student-email">University Email</label>
+                    <input type="email" id="student-email" placeholder="student@university.edu" required>
+                </div>
+                <div class="form-group">
+                    <label for="student-password">Password</label>
+                    <input type="password" id="student-password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+            </form>
+            <p class="modal-footer-text">Dummy login for academic project showcase purposes.</p>
+        </div>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="script.js"></script>
+</body>
+</html>
